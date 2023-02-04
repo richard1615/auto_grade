@@ -5,31 +5,33 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 
 # Create your views here.
-class AssignmentListView(ListView):
+class AssignmentListView(ListView, LoginRequiredMixin):
     model = Assignment
     template_name = 'assignment_submissions/assignments.html'
     context_object_name = 'assignments'
-    ordering = ['-date_posted']
     paginate_by = 10
 
     def get_queryset(self):
         user = self.request.user
-        if user.professor:
+        if user.is_professor:
             return Assignment.objects.filter(prof=user)
         else:
-            return Assignment.objects.filter(prof=user.student.professor)
+            return Assignment.objects.all()
 
 
-class AssignmentDetailView(DetailView):
+class AssignmentDetailView(LoginRequiredMixin, DetailView):
     model = Assignment
     template_name = 'assignment_submissions/assignment_detail.html'
     context_object_name = 'assignment'
 
 
-class AssignmentCreateView(CreateView):
+class AssignmentCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Assignment
     template_name = 'assignment_submissions/assignment_form.html'
     fields = ['name', 'description', 'test_cases']
+
+    def test_func(self):
+        return self.request.user.is_professor
 
     def form_valid(self, form):
         form.instance.prof = self.request.user
@@ -48,7 +50,7 @@ class AssignmentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return False
 
 
-class SubmissionListView(ListView):
+class SubmissionListView(LoginRequiredMixin, ListView):
     model = Submission
     template_name = 'assignment_submissions/submissions.html'
     context_object_name = 'submissions'
@@ -57,14 +59,14 @@ class SubmissionListView(ListView):
 
     def get_queryset(self):
         user = self.request.user
-        if user.professor:
+        if user.is_professor:
             assignment = Assignment.objects.filter(self.request.GET.get('assignment_id'))
             return Submission.objects.filter(assignment=assignment)
         else:
             return Submission.objects.filter(student=user)
 
 
-class SubmissionDetailView(DetailView):
+class SubmissionDetailView(LoginRequiredMixin, DetailView):
     model = Submission
     template_name = 'assignment_submissions/submission_detail.html'
     context_object_name = 'submission'
@@ -87,10 +89,15 @@ class SubmissionDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return False
 
 
-class SubmissionCreateView(CreateView):
+class SubmissionCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Submission
     template_name = 'assignment_submissions/submission_form.html'
     fields = ['code']
+
+    def test_func(self):
+        if self.request.user.is_student:
+            return False
+        return True
 
     def form_valid(self, form):
         form.instance.student = self.request.user

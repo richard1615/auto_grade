@@ -1,9 +1,15 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
+
 
 # Create your models here.
+class BaseUser(AbstractUser):
+    is_professor = models.BooleanField(default=False)
+    is_student = models.BooleanField(default=False)
+
+
 class Professor(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='professor')
+    user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, related_name='professor')
     department = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=100)
 
@@ -12,7 +18,7 @@ class Professor(models.Model):
 
 
 class Student(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student')
+    user = models.OneToOneField(BaseUser, on_delete=models.CASCADE, related_name='student')
     department = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=100)
     professor = models.ForeignKey(Professor, on_delete=models.CASCADE, related_name='students')

@@ -4,4 +4,10 @@ from . import views
 urlpatterns = [
     path('', views.AssignmentListView.as_view(), name='assignments'),
     path('assignment/<int:pk>/', views.AssignmentDetailView.as_view(), name='assignment-detail'),
+    path('assignment/new/', views.AssignmentCreateView.as_view(), name='assignment-create'),
+    path('assignment/<int:pk>/delete/', views.AssignmentDeleteView.as_view(), name='assignment-delete'),
+    path('submissions/', views.SubmissionListView.as_view(), name='submissions'),
+    path('submission/<int:pk>/', views.SubmissionDetailView.as_view(), name='submission-detail'),
+    path('submission/<int:pk>/delete/', views.SubmissionDeleteView.as_view(), name='submission-delete'),
+    path('submission/new/', views.SubmissionCreateView.as_view(), name='submission-create'),
 ]

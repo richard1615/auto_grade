@@ -1,7 +1,6 @@
 from django.shortcuts import render
 from .models import Assignment, Submission
 from django.views.generic import ListView, DetailView, CreateView, DeleteView
-from .forms import SubmissionForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 
 
@@ -25,13 +24,6 @@ class AssignmentDetailView(DetailView):
     model = Assignment
     template_name = 'assignment_submissions/assignment_detail.html'
     context_object_name = 'assignment'
-
-    def get_context_data(self, **kwargs):
-        if self.request.user.professor:
-            return super().get_context_data(**kwargs)
-        context = super().get_context_data(**kwargs)
-        context['submission_form'] = SubmissionForm()
-        return context
 
 
 class AssignmentCreateView(CreateView):
@@ -94,3 +86,12 @@ class SubmissionDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
             return True
         return False
 
+
+class SubmissionCreateView(CreateView):
+    model = Submission
+    template_name = 'assignment_submissions/submission_form.html'
+    fields = ['code']
+
+    def form_valid(self, form):
+        form.instance.student = self.request.user
+        return super().form_valid(form)

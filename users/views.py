@@ -10,7 +10,10 @@ def register(request, user_type):
         d_form = (ProfessorRegisterForm(request.POST) if
                   user_type == 'professor' else StudentRegisterForm(request.POST))
         if form.is_valid() and d_form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
+            user.is_professor = True if user_type == 'professor' else False
+            user.is_student = True if user_type == 'student' else False
+            user.save()
             d_form = d_form.save(commit=False)
             d_form.user = user
             d_form.save()

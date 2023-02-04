@@ -1,0 +1,11 @@
+{% extends 'assignment_submissions/base.html' %}
+
+{% block content %}
+    {% for submission in submissions %}
+        <div class="card">
+            <h3>{{ submission.student }}</h3>
+            <p>{{ submission.date }}</p>
+            <p>{{ submission.score }}</p>
+        </div>
+    {% endfor %}
+{% endblock %}

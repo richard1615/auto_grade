@@ -1,0 +1,14 @@
+{% extends 'assignment_submissions/base.html' %}
+
+{% block content %}
+    {% if user_type %}
+        <h2>Register as a professor</h2>
+        {% else %}
+        <h2>Register as a student</h2>
+    {% endif %}
+    <form method="post">
+    {% csrf_token %}
+        {{ form.as_p }}
+        {{ d_form.as_p }}
+    </form>
+{% endblock %}

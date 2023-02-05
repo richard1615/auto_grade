@@ -9,7 +9,8 @@ class Assignment(models.Model):
     name = models.CharField(max_length=100)
     prof = models.ForeignKey(BaseUser, on_delete=models.CASCADE, related_name='assignments')
     description = models.TextField()
-    test_cases = models.FileField(upload_to='test_cases/')
+    test_case_input = models.FileField(upload_to='test_cases/')
+    test_case_output = models.FileField(upload_to='test_cases/')
     due_date = models.DateTimeField(default=timezone.now)
 
     def __str__(self):

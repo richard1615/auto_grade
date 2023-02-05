@@ -13,5 +13,6 @@ urlpatterns = [
     path('submission/<int:pk>/delete/', views.SubmissionDeleteView.as_view(), name='submission-delete'),
     path('submission/<int:assignment_id>/new/', views.SubmissionCreateView.as_view(), name='submission-create'),
     path('assignments/sms/<int:user_id>/<int:assignment_id>', views.assignments_sms, name='assignments_sms'),
-    path('submissions/sms/<int:user_id>/<int:assignment_id>', views.submissions_sms, name='submissions_sms')
+    path('submissions/sms/<int:user_id>/<int:assignment_id>', views.submissions_sms, name='submissions_sms'),
+    path('evaluate/<int:assignment_id>/<int:submission_id>', views.evaluate, name='evaluate')
 ]

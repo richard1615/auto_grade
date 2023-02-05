@@ -1,4 +1,3 @@
-
 from django.shortcuts import redirect
 from django.urls import reverse
 from .eval import grade
@@ -14,6 +13,7 @@ from .send_sms import send_sms
 
 def landing(request):
     return render(request, 'assignment_submissions/landing_page.html')
+
 
 # Create your views here.
 class AssignmentListView(LoginRequiredMixin, ListView):
@@ -39,7 +39,7 @@ class AssignmentDetailView(LoginRequiredMixin, DetailView):
 class AssignmentCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     model = Assignment
     template_name = 'assignment_submissions/assignment_form.html'
-    fields = ['name', 'description', 'test_cases']
+    fields = ['name', 'description', 'test_case_input', 'test_case_output', 'due_date']
 
     def test_func(self):
         return self.request.user.is_professor
@@ -113,29 +113,44 @@ class SubmissionCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
             return True
         return False
 
-    def check_submission(id, extension, dir, timelimit):
-        # example: id = "p1", extension = "cpp", dir = "p1", timelimit = 1
-        os.chdir('assignment_submissions/eval')
-        os.system(f'mkdir {id} {id}/{id}-input {id}/{id}-output')
-        os.system(f'cp ../../test_cases/{id}-input*.* {id}/{id}-input/')
-        os.system(f'cp ../../test_cases/{id}-output*.* {id}/{id}-output/')
-        os.system(f'cp ../../code/{id}-main.cpp {id}/')
-
-        grade.run_container(id, extension, dir, timelimit)
-        res = grade.return_result()
-
-        os.system(f'sudo rm -rf {id}/')
-        # os.system(f'rm -rf {id}')
-        return res
-
     def form_valid(self, form):
         form.instance.student = self.request.user
         form.instance.assignment = Assignment.objects.get(id=self.kwargs.get('assignment_id'))
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse_lazy('submissions_sms',
-                            kwargs={'user_id': self.request.user.id, 'assignment_id': self.kwargs.get('assignment_id')})
+        return reverse('evaluate', kwargs={'assignment_id':self.kwargs.get('assignment_id'),
+                                           'submission_id':self.object.id})
+        #return reverse_lazy('submissions_sms',
+                            #kwargs={'user_id': self.request.user.id, 'assignment_id': self.kwargs.get('assignment_id')})
+
+
+def evaluate(request, assignment_id, submission_id):
+    submission = Submission.objects.get(pk=submission_id)
+    assignment = Assignment.objects.get(pk=assignment_id)
+    file = submission.code.path
+    filename = file[file.rfind('/'):]
+    id = filename[0:filename.find('-')]
+    extension = filename[filename.rfind('.')+1:]
+    dir = id
+    timelimit = 1
+
+    os.chdir('assignment_submissions/eval')
+    os.system(f'mkdir {id} {id}/{id}-input {id}/{id}-output')
+    os.system(f'cp ../../test_cases/{id}-input*.* {id}/{id}-input/')
+    os.system(f'cp ../../test_cases/{id}-output*.* {id}/{id}-output/')
+    os.system(f'cp ../../code/{id}-main.{extension} {id}/')
+
+    grade.run_container(id, extension, dir, timelimit)
+    res = grade.return_result()
+
+    os.system(f'sudo rm -rf {id}')
+    # os.system(f'rm -rf {id}')
+    marks = {'AC': 100, 'WA': 0, 'TLE': 50}
+    assignment.score = marks.get(res, -5)
+    assignment.save()
+    return redirect('assignments')
+
 
 
 # TODO assignment submission sms is not working try to fix it
@@ -153,9 +168,10 @@ def assignments_sms(request, user_id, assignment_id):
 
 
 def submissions_sms(request, user_id, assignment_id):
-    user = BaseUser.objects.get(id=user_id)
-    student = user.student
-    assignment = Assignment.objects.get(id=assignment_id)
-    send_sms(student.phone_number, f'Your submission for assignment {assignment.name} has been received. Please check '
-                                   f'the portal for more details.')
     return redirect('assignments')
+    # user = BaseUser.objects.get(id=user_id)
+    # student = user.student
+    # assignment = Assignment.objects.get(id=assignment_id)
+    # send_sms(student.phone_number, f'Your submission for assignment {assignment.name} has been received. Please check '
+    #                                f'the portal for more details.')
+    # return redirect('assignments')

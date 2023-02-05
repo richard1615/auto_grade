@@ -20,8 +20,9 @@ from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.landing_page, name = 'home'),
+    path('/home', views.landing_page, name = 'home'),
     path('users/', include('users.urls')),
+    path('', include('assignment_submissions.urls')),
     path('login/', auth_views.LoginView.as_view(template_name='users/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(template_name='assignment_submissions/landing_page.html'), name='logout'),
 ]

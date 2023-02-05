@@ -23,7 +23,7 @@ function cleanup(){
 # should be placed in the "bind_mnt_dir"
 # directory with the following naming convention:
 #
-# source file = {id} + "-main." + {extension}
+# source file = {id} + "." + {extension}
 #
 # input file = {id} + "-input.txt"
 #
@@ -33,7 +33,7 @@ function cleanup(){
 
 # compile the c code 
 
-g++ $3/$1-main.$2 -o $1-main.out 2> compileError.txt
+g++ $3/$1.$2 -o $1-main.out 2> compileError.txt
 
 if [ $? != 0 ]; then
     echo "compile failed "

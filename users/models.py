@@ -4,8 +4,8 @@ from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
 class BaseUser(AbstractUser):
-    is_professor = models.BooleanField(default=False)
-    is_student = models.BooleanField(default=False)
+    is_professor = models.BooleanField(default=True)
+    is_student = models.BooleanField(default=True)
 
 
 class Professor(models.Model):

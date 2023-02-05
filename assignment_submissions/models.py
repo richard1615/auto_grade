@@ -25,4 +25,4 @@ class Submission(models.Model):
     date = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return f'{self.assignment.name} - {self.student.username}'
+        return f'{self.assignment.name} - {self.student.username} - {self.id}'

@@ -1,0 +1,12 @@
+{% extends 'assignment_submissions/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+    <h1>Assignment Submission</h1>
+    <p>Submit your assignment here.</p>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <input type="submit" value="Submit" class="btn btn-primary"/>
+    </form>
+{% endblock %}

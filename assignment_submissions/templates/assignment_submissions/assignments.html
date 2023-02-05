@@ -1,12 +1,23 @@
 {% extends 'assignment_submissions/base.html' %}
 
 {% block content %}
+    <h1>Assignments</h1>
+    {% if user.is_professor %}
+        <a class="btn btn-primary" href="{% url 'assignment-create' %}">Create Assignment</a>
+    {% endif %}
     {% for assignment in assignments %}
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">{{ assignment.title }}</h5>
+                <h5 class="card-title">{{ assignment.name }}</h5>
+                <h6 class="card-subtitle mb-2 text-muted">By {{ assignment.prof }}</h6>
+                <h6 class="card-subtitle mb-2 text-muted">{{ assignment.due_date }}</h6>
                 <p class="card-text">{{ assignment.description }}</p>
-                <a class="btn btn-primary">View</a>
+                {% if user.is_professor %}
+                    <a class="btn btn-primary" href="{% url 'submissions' assignment_id=assignment.id %}">View Submissions</a>
+                    <a class="btn btn-danger">Delete</a>
+                {% else %}
+                    <a class="btn btn-primary" href="{% url 'submission-create' assignment_id=assignment.id %}">Submit</a>
+                {% endif %}
             </div>
         </div>
     {% endfor %}

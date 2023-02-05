@@ -1,4 +1,5 @@
 {% extends 'assignment_submissions/base.html' %}
+{% load crispy_forms_tags %}
 
 {% block content %}
     {% if user_type %}
@@ -8,7 +9,8 @@
     {% endif %}
     <form method="post">
     {% csrf_token %}
-        {{ form.as_p }}
-        {{ d_form.as_p }}
+        {{ form|crispy }}
+        {{ d_form|crispy }}
+        <button type="submit" class="btn btn-primary">Register</button>
     </form>
 {% endblock %}

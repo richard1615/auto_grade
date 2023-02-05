@@ -1,4 +1,5 @@
-from django.urls import reverse_lazy
+from django.shortcuts import redirect, render
+from django.urls import reverse_lazy, reverse
 from .models import Assignment, Submission
 from django.views.generic import ListView, DetailView, CreateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -6,8 +7,12 @@ from users.models import BaseUser
 from .send_sms import send_sms
 
 
+def landing(request):
+    return render(request, 'assignment_submissions/landing_page.html')
+
+
 # Create your views here.
-class AssignmentListView(ListView, LoginRequiredMixin):
+class AssignmentListView(LoginRequiredMixin, ListView):
     model = Assignment
     template_name = 'assignment_submissions/assignments.html'
     context_object_name = 'assignments'
@@ -40,7 +45,7 @@ class AssignmentCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse_lazy('assignments_sms', kwargs={'user_id': self.request.user.id, 'assignment_id': self.object.id})
+        return reverse('assignments_sms', kwargs={'user_id': self.request.user.id, 'assignment_id': self.object.id})
 
 
 class AssignmentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
@@ -65,7 +70,7 @@ class SubmissionListView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         user = self.request.user
         if user.is_professor:
-            assignment = Assignment.objects.filter(self.request.GET.get('assignment_id'))
+            assignment = Assignment.objects.get(pk=self.kwargs.get('assignment_id'))
             return Submission.objects.filter(assignment=assignment)
         else:
             return Submission.objects.filter(student=user)
@@ -78,7 +83,7 @@ class SubmissionDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['assignment'] = Assignment.objects.get(id=self.request.GET.get('assignment_id'))
+        context['submission'] = Submission.objects.get(id=self.kwargs.get('pk'))
         return context
 
 
@@ -101,31 +106,37 @@ class SubmissionCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
 
     def test_func(self):
         if self.request.user.is_student:
-            return False
-        return True
+            return True
+        return False
 
     def form_valid(self, form):
         form.instance.student = self.request.user
+        form.instance.assignment = Assignment.objects.get(id=self.kwargs.get('assignment_id'))
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse_lazy('submissions_sms', kwargs={'user_id': self.request.user.id, 'assignment_id': self.object.id})
+        return reverse_lazy('submissions_sms',
+                            kwargs={'user_id': self.request.user.id, 'assignment_id': self.kwargs.get('assignment_id')})
 
 
+# TODO assignment submission sms is not working try to fix it
 def assignments_sms(request, user_id, assignment_id):
-    professor = BaseUser.objects.get(id=user_id)
+    user = BaseUser.objects.get(id=user_id)
+    professor = user.professor
     assignment = Assignment.objects.get(id=assignment_id)
     students = professor.students.all()
     for student in students:
-        send_sms(student.phone_number, f'Assignment {assignment.name} has been posted. Please check the portal for '
-                                       f'more details.')
+        send_sms(student.phone_number,
+                 f'Assignment {assignment.name} has been posted. Due date is {assignment.due_date}. Please check the portal for'
+                 f'more details.')
     send_sms(professor.phone_number, f'Assignment {assignment.name} has been posted')
-    return reverse_lazy('assignments')
+    return redirect('assignments')
 
 
 def submissions_sms(request, user_id, assignment_id):
-    student = BaseUser.objects.get(id=user_id)
+    user = BaseUser.objects.get(id=user_id)
+    student = user.student
     assignment = Assignment.objects.get(id=assignment_id)
     send_sms(student.phone_number, f'Your submission for assignment {assignment.name} has been received. Please check '
                                    f'the portal for more details.')
-    return reverse_lazy('assignments')
+    return redirect('assignments')

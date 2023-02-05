@@ -1,12 +1,11 @@
-from django.shortcuts import render
-from .forms import ProfessorRegisterForm, StudentRegisterForm
-from django.contrib.auth.forms import UserCreationForm
+from django.shortcuts import render, redirect
+from .forms import ProfessorRegisterForm, StudentRegisterForm, SignUpForm
 
 
 # Create your views here.
 def register(request, user_type):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = SignUpForm(request.POST)
         d_form = (ProfessorRegisterForm(request.POST) if
                   user_type == 'professor' else StudentRegisterForm(request.POST))
         if form.is_valid() and d_form.is_valid():
@@ -17,8 +16,9 @@ def register(request, user_type):
             d_form = d_form.save(commit=False)
             d_form.user = user
             d_form.save()
+            return redirect('login')
     else:
-        form = UserCreationForm()
+        form = SignUpForm()
         d_form = ProfessorRegisterForm() if user_type == 'professor' else StudentRegisterForm()
     context = {
         'form': form,

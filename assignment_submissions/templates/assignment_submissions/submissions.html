@@ -2,10 +2,11 @@
 
 {% block content %}
     {% for submission in submissions %}
-        <div class="card">
-            <h3>{{ submission.student }}</h3>
+        <div class="card mb-1">
+            <h3>By {{ submission.student }}</h3>
             <p>{{ submission.date }}</p>
             <p>{{ submission.score }}</p>
+            <button class="btn btn-primary" href="{% url 'submission-detail' pk=submission.id %}">View</button>
         </div>
     {% endfor %}
 {% endblock %}

@@ -111,10 +111,10 @@ class SubmissionCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         grade.run_container(id, extension, dir, timelimit)
         res = grade.return_result()
 
-        os.system(f'rm -rf {id}/')
+        os.system(f'sudo rm -rf {id}/')
         # os.system(f'rm -rf {id}')
         return res
 
-    # def form_valid(self, form):
-    #     form.instance.student = self.request.user
-    #     return super().form_valid(form)
+    def form_valid(self, form):
+        form.instance.student = self.request.user
+        return super().form_valid(form)

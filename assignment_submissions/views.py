@@ -4,6 +4,9 @@ from .models import Assignment, Submission
 from django.views.generic import ListView, DetailView, CreateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 import os
+from django.urls import reverse_lazy
+from users.models import BaseUser
+from .send_sms import send_sms
 
 # Create your views here.
 class AssignmentListView(ListView, LoginRequiredMixin):
@@ -38,11 +41,14 @@ class AssignmentCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         form.instance.prof = self.request.user
         return super().form_valid(form)
 
+    def get_success_url(self):
+        return reverse_lazy('assignments_sms', kwargs={'user_id': self.request.user.id, 'assignment_id': self.object.id})
+
 
 class AssignmentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Assignment
     template_name = 'assignment_submissions/assignment_confirm_delete.html'
-    success_url = '/'
+    success_url = reverse_lazy('assignments')
 
     def test_func(self):
         assignment = self.get_object()
@@ -81,7 +87,7 @@ class SubmissionDetailView(LoginRequiredMixin, DetailView):
 class SubmissionDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Submission
     template_name = 'assignment_submissions/submission_confirm_delete.html'
-    success_url = '/'
+    success_url = reverse_lazy('assignments')
 
     def test_func(self):
         submission = self.get_object()
@@ -118,3 +124,25 @@ class SubmissionCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     def form_valid(self, form):
         form.instance.student = self.request.user
         return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy('submissions_sms', kwargs={'user_id': self.request.user.id, 'assignment_id': self.object.id})
+
+
+def assignments_sms(request, user_id, assignment_id):
+    professor = BaseUser.objects.get(id=user_id)
+    assignment = Assignment.objects.get(id=assignment_id)
+    students = professor.students.all()
+    for student in students:
+        send_sms(student.phone_number, f'Assignment {assignment.name} has been posted. Please check the portal for '
+                                       f'more details.')
+    send_sms(professor.phone_number, f'Assignment {assignment.name} has been posted')
+    return reverse_lazy('assignments')
+
+
+def submissions_sms(request, user_id, assignment_id):
+    student = BaseUser.objects.get(id=user_id)
+    assignment = Assignment.objects.get(id=assignment_id)
+    send_sms(student.phone_number, f'Your submission for assignment {assignment.name} has been received. Please check '
+                                   f'the portal for more details.')
+    return reverse_lazy('assignments')

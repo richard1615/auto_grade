@@ -11,6 +11,7 @@ def return_result():
     res_file = open('result.txt')
     res = res_file.read()
 
+    os.system(f'echo {res}')
     if res.startswith("wrong output"):
         return "WA"
     elif res.startswith("time limit"):
@@ -18,7 +19,7 @@ def return_result():
     elif res.startswith("success"):
         return "AC"
 
-# run container, get status
-run_container("p1", "cpp", "p1", 1)
-res = return_result()
-print(res)
+# # run container, get status
+# run_container("p1", "cpp", "p1", 1)
+# res = return_result()
+# print(res)

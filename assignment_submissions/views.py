@@ -6,6 +6,7 @@ from .models import Assignment, Submission
 from django.views.generic import ListView, DetailView, CreateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 import os
+from django.db import models
 from django.urls import reverse_lazy
 from users.models import BaseUser
 from .send_sms import send_sms
@@ -129,26 +130,28 @@ def evaluate(request, assignment_id, submission_id):
     submission = Submission.objects.get(pk=submission_id)
     assignment = Assignment.objects.get(pk=assignment_id)
     file = submission.code.path
-    filename = file[file.rfind('/'):]
-    id = filename[0:filename.find('-')]
+    filename = file[file.rfind('/') + 1:]
+    id = filename[0:filename.find('.')]
+    id = id[0:id.find('_')]
     extension = filename[filename.rfind('.')+1:]
     dir = id
     timelimit = 1
 
     os.chdir('assignment_submissions/eval')
-    os.system(f'mkdir {id} {id}/{id}-input {id}/{id}-output')
-    os.system(f'cp ../../test_cases/{id}-input*.* {id}/{id}-input/')
-    os.system(f'cp ../../test_cases/{id}-output*.* {id}/{id}-output/')
-    os.system(f'cp ../../code/{id}-main.{extension} {id}/')
+    os.system(f'sudo mkdir {id} {id}/{id}-input {id}/{id}-output')
+    os.system(f'sudo cp ../../test_cases/{id}-input*.* {id}/{id}-input/')
+    os.system(f'sudo cp ../../test_cases/{id}-output*.* {id}/{id}-output/')
+    os.system(f'sudo cp ../../code/{id}.{extension} {id}/')
 
     grade.run_container(id, extension, dir, timelimit)
     res = grade.return_result()
 
     os.system(f'sudo rm -rf {id}')
+    print(res)
     # os.system(f'rm -rf {id}')
     marks = {'AC': 100, 'WA': 0, 'TLE': 50}
-    assignment.score = marks.get(res, -5)
-    assignment.save()
+    submission.score = marks[res]
+    submission.save(update_fields=["score"])
     return redirect('assignments')
 
 

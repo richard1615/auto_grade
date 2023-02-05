@@ -1,7 +1,7 @@
 {% extends 'assignment_submissions/base.html' %}
 
 {% block content %}
-    {% if user_type %}
+    {% if user_type == "professor" %}
         <h2>Register as a professor</h2>
         {% else %}
         <h2>Register as a student</h2>

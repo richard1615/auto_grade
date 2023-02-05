@@ -1,4 +1,4 @@
-from eval import grade
+from .eval import grade
 from django.shortcuts import render
 from .models import Assignment, Submission
 from django.views.generic import ListView, DetailView, CreateView, DeleteView

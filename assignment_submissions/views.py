@@ -1,15 +1,19 @@
-from django.shortcuts import redirect, render
-from django.urls import reverse_lazy, reverse
+
+from django.shortcuts import redirect
+from django.urls import reverse
+from .eval import grade
+from django.shortcuts import render
 from .models import Assignment, Submission
 from django.views.generic import ListView, DetailView, CreateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+import os
+from django.urls import reverse_lazy
 from users.models import BaseUser
 from .send_sms import send_sms
 
 
 def landing(request):
     return render(request, 'assignment_submissions/landing_page.html')
-
 
 # Create your views here.
 class AssignmentListView(LoginRequiredMixin, ListView):
@@ -108,6 +112,21 @@ class SubmissionCreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         if self.request.user.is_student:
             return True
         return False
+
+    def check_submission(id, extension, dir, timelimit):
+        # example: id = "p1", extension = "cpp", dir = "p1", timelimit = 1
+        os.chdir('assignment_submissions/eval')
+        os.system(f'mkdir {id} {id}/{id}-input {id}/{id}-output')
+        os.system(f'cp ../../test_cases/{id}-input*.* {id}/{id}-input/')
+        os.system(f'cp ../../test_cases/{id}-output*.* {id}/{id}-output/')
+        os.system(f'cp ../../code/{id}-main.cpp {id}/')
+
+        grade.run_container(id, extension, dir, timelimit)
+        res = grade.return_result()
+
+        os.system(f'sudo rm -rf {id}/')
+        # os.system(f'rm -rf {id}')
+        return res
 
     def form_valid(self, form):
         form.instance.student = self.request.user

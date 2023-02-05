@@ -5,7 +5,7 @@ import os
 # create container from image
 def run_container(id, extension, dir, timelimit):
     pwd = os.getcwd()
-    os.system(f'docker run -v {pwd}/autoGrade/{dir}:/home/execution_user/{dir} bwh:latest {id} {extension} {dir} {timelimit} > result.txt')
+    os.system(f'docker run -v {pwd}/{dir}:/home/execution_user/{dir} bwh:latest {id} {extension} {dir} {timelimit} > result.txt')
 
 def return_result():
     res_file = open('result.txt')

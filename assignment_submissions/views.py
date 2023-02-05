@@ -152,7 +152,7 @@ def evaluate(request, assignment_id, submission_id):
     marks = {'AC': 100, 'WA': 0, 'TLE': 50}
     submission.score = marks[res]
     submission.save(update_fields=["score"])
-    return redirect('assignments')
+    return redirect('submissions_sms', user_id=request.user.id, assignment_id=assignment_id)
 
 
 
@@ -172,9 +172,9 @@ def assignments_sms(request, user_id, assignment_id):
 
 def submissions_sms(request, user_id, assignment_id):
     return redirect('assignments')
-    # user = BaseUser.objects.get(id=user_id)
-    # student = user.student
-    # assignment = Assignment.objects.get(id=assignment_id)
-    # send_sms(student.phone_number, f'Your submission for assignment {assignment.name} has been received. Please check '
-    #                                f'the portal for more details.')
-    # return redirect('assignments')
+    user = BaseUser.objects.get(id=user_id)
+    student = user.student
+    assignment = Assignment.objects.get(id=assignment_id)
+    send_sms(student.phone_number, f'Your submission for assignment {assignment.name} has been received. Please check '
+                                   f'the portal for more details.')
+    return redirect('assignments')

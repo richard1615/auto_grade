@@ -25,3 +25,9 @@ To use this application, you need:
 ## To evaluate code:
 1. Move the code file into the p1/ directory
 2. Run `python3 grade.py`
+
+## Devpost Link
+https://devpost.com/software/autograde
+
+##Youtube Demo Link
+https://youtu.be/J0GwmflmZXs
